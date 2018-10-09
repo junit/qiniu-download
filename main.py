@@ -30,26 +30,24 @@ if __name__ == '__main__':
 	q = Auth(access_key, secret_key)
 	bucket = BucketManager(q)
 	items = listfiles(bucket, bucket_name)
-	utils.record_log('file size -> ' + str(len(items)))
-	for i in items:
-		key = i['key']
+	utils.record_log('total files: ' + str(len(items)))
+	for index, item in enumerate(items):
+		key = item['key']
 		# print(key)
 		base_url = 'http://%(domain)s/%(key)s' % {"domain": bucket_domain, "key": key}
 		# print(base_url)
-		# 如果空间有时间戳防盗链或是私有空间，可以调用该方法生成私有链接
 		private_url = q.private_download_url(base_url, expires=3600)
 		# print(private_url)
 		r = requests.get(private_url)
 		if r.status_code == 200:
-		    if r.content:
-				if '/' in key:
-					key_path = path + key[:key.rfind('/')]
-					if not os.path.exists(key_path):
-						os.makedirs(key_path)
-				file = open(path + key, "wb")
-				file.write(r.content)
-				file.flush()
-				file.close()
-				utils.record_log(private_url + " download success")
+			if '/' in key:
+				key_path = path + key[:key.rfind('/')]
+				if not os.path.exists(key_path):
+					os.makedirs(key_path)
+			file = open(path + key, "wb")
+			file.write(r.content)
+			file.flush()
+			file.close()
+			utils.record_log(str(index) + ": " + private_url + " download success")
 		else:
 			utils.record_log(private_url + " download failed")
